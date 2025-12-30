@@ -1,0 +1,86 @@
+seed: 42
+deterministic: true
+
+paths:
+  datasets_root: ../datasets
+  outputs_root: outputs
+
+dataset:
+  train_dirname: Train
+  test_dirname: Test
+  normal_dirname: NormalVideos
+  video_exts: [".mp4", ".avi", ".mkv"]
+  image_exts: [".png", ".jpg", ".jpeg"]
+  assumed_fps: 30
+
+audit:
+  out_dir: outputs/dataset_audit
+  manifest_name: manifest.csv
+  max_videos: null
+
+preprocess:
+  out_dir: outputs/precomputed
+  fps: 10
+  num_segments: 32
+  max_k: 20
+  max_frames_per_video: null
+  tracking_frames_per_segment: 3
+  use_tracking: true
+  yolo_model: yolov8n.pt
+  yolo_imgsz: 160
+  yolo_conf: 0.25
+  yolo_iou: 0.7
+  yolo_classes: [0]  # person
+  tracker: bytetrack.yaml
+  device: cuda
+  half: true
+  appearance_backbone: resnet18
+  appearance_pool: avgpool
+  cache_dtype: float16
+  resume: true
+  max_videos: null
+
+train:
+  exp_root: outputs
+  exp_name: targetformer_main
+  feature_cache: outputs/precomputed
+  fps: 10
+  num_segments: 32
+  k: 10
+  model:
+    name: targetformer
+    d_model: 256
+    nhead: 8
+    num_layers: 4
+    dropout: 0.1
+    use_prototypes: true
+    num_prototypes: 32
+    proto_tau: 0.2
+  optim:
+    lr: 1.0e-4
+    weight_decay: 1.0e-4
+  epochs: 10
+  batch_size: 1
+  grad_accum_steps: 4
+  amp: true
+  num_workers: 2
+  log_every: 20
+  save_every: 1
+  seeds: [0, 1, 2]
+  loss:
+    margin: 1.0
+    lambda_smooth: 0.1
+    lambda_sparse: 0.001
+    lambda_proto_div: 0.01
+  ablation:
+    drop_geometry: false
+    drop_motion: false
+    drop_appearance: false
+
+eval:
+  split: Test
+  out_name: eval
+
+viz:
+  figures_dir: outputs/figures
+  figures_data_dir: outputs/figures_data

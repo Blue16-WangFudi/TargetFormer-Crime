@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.ipynb_checkpoints/
+
+# Env / IDE
+.env
+.env.*
+.venv/
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Artifacts (MUST NOT PUSH)
+outputs/
+datasets/
+latex/
+*.ckpt
+*.pth
+*.pt
+*.onnx
+*.engine
+*.log
+*.tmp
+*.zip
+*.tar
+*.tar.gz
+
+# LaTeX build artifacts (if ever copied here)
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+

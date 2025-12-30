@@ -1,0 +1,84 @@
+seed: 123
+deterministic: true
+
+paths:
+  datasets_root: ../datasets
+  outputs_root: outputs
+
+dataset:
+  train_dirname: Train
+  test_dirname: Test
+  normal_dirname: NormalVideos
+  video_exts: [".mp4", ".avi", ".mkv"]
+  image_exts: [".png", ".jpg", ".jpeg"]
+  assumed_fps: 30
+
+audit:
+  out_dir: outputs/dataset_audit_smoke
+  manifest_name: manifest.csv
+  max_videos: 8
+
+preprocess:
+  out_dir: outputs/precomputed_smoke
+  fps: 5
+  num_segments: 16
+  max_k: 10
+  max_frames_per_video: 60
+  use_tracking: false
+  yolo_model: yolov8n.pt
+  yolo_imgsz: 160
+  yolo_conf: 0.25
+  yolo_iou: 0.7
+  yolo_classes: [0]
+  tracker: bytetrack.yaml
+  device: cuda
+  half: true
+  appearance_backbone: resnet18
+  cache_dtype: float16
+  resume: true
+  max_videos: 4
+
+train:
+  exp_root: outputs
+  exp_name: smoke_targetformer
+  feature_cache: outputs/precomputed_smoke
+  fps: 5
+  num_segments: 16
+  k: 5
+  model:
+    name: targetformer
+    d_model: 128
+    nhead: 4
+    num_layers: 2
+    dropout: 0.1
+    use_prototypes: false
+    num_prototypes: 16
+    proto_tau: 0.2
+  optim:
+    lr: 5.0e-4
+    weight_decay: 1.0e-4
+  epochs: 1
+  batch_size: 1
+  grad_accum_steps: 1
+  amp: true
+  num_workers: 0
+  log_every: 1
+  save_every: 1
+  seeds: [0]
+  loss:
+    margin: 1.0
+    lambda_smooth: 0.1
+    lambda_sparse: 0.001
+    lambda_proto_div: 0.0
+  ablation:
+    drop_geometry: false
+    drop_motion: true
+    drop_appearance: false
+
+eval:
+  split: Test
+  out_name: eval
+
+viz:
+  figures_dir: outputs/figures_smoke
+  figures_data_dir: outputs/figures_data_smoke

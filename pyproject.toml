@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "targetformer-crime"
+version = "0.1.0"
+description = "TargetFormer-Crime: YOLO + Transformer for target-centric video anomaly detection on UCF-Crime"
+requires-python = ">=3.9"
+dependencies = [
+  "numpy",
+  "pandas",
+  "pyyaml",
+  "tqdm",
+  "matplotlib",
+  "scikit-learn",
+  "opencv-python",
+  "ultralytics",
+  "av",
+  "torch",
+  "torchvision",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

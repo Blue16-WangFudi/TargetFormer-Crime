@@ -1,0 +1,228 @@
+# Full research runs (baselines + ablations) are driven by this config.
+# To keep RTX 4060 (8GB) safe by default, epochs are moderate; adjust as needed.
+
+seed: 42
+deterministic: true
+
+paths:
+  datasets_root: ../datasets
+  outputs_root: outputs
+
+dataset:
+  train_dirname: Train
+  test_dirname: Test
+  normal_dirname: NormalVideos
+  video_exts: [".mp4", ".avi", ".mkv"]
+  image_exts: [".png", ".jpg", ".jpeg"]
+  assumed_fps: 30
+
+preprocess:
+  out_dir: outputs/precomputed
+  fps: 10
+  num_segments: 32
+  max_k: 20
+  max_frames_per_video: null
+  tracking_frames_per_segment: 3
+  use_tracking: true
+  yolo_model: yolov8n.pt
+  yolo_imgsz: 160
+  yolo_conf: 0.25
+  yolo_iou: 0.7
+  yolo_classes: [0]
+  tracker: bytetrack.yaml
+  device: cuda
+  half: true
+  appearance_backbone: resnet18
+  cache_dtype: float16
+  resume: true
+  max_videos: null
+
+preprocess_variants:
+  - name: main_track_fps10
+    out_dir: outputs/precomputed
+    fps: 10
+    use_tracking: true
+  - name: global_fps10
+    kind: global
+    out_dir: outputs/precomputed_global
+    fps: 10
+    max_k: 1
+  - name: no_track_fps10
+    out_dir: outputs/precomputed_no_track
+    fps: 10
+    use_tracking: false
+  - name: track_fps5
+    out_dir: outputs/precomputed_fps5
+    fps: 5
+    use_tracking: true
+    tracking_frames_per_segment: 2
+
+train:
+  steps_per_epoch: 200
+  io_cache_items: 256
+  eval_max_videos: 290
+
+experiments:
+  exp_root: outputs
+  runs:
+    # Main model (>=3 seeds)
+    - name: main_targetformer
+      kind: targetformer
+      feature_cache: outputs/precomputed
+      seeds: [0, 1, 2]
+      epochs: 10
+      steps_per_epoch: 400
+      fps: 10
+      num_segments: 32
+      k: 10
+      model:
+        d_model: 256
+        nhead: 8
+        num_layers: 4
+        dropout: 0.1
+        use_prototypes: true
+        num_prototypes: 32
+        proto_tau: 0.2
+      ablation:
+        drop_geometry: false
+        drop_motion: false
+        drop_appearance: false
+
+    # Baselines (MUST RUN)
+    - name: B1_global_mlp
+      kind: global_mlp
+      feature_cache: outputs/precomputed_global
+      seeds: [0]
+      epochs: 10
+      fps: 10
+      num_segments: 32
+      k: 1
+
+    - name: B2_yolo_gru
+      kind: yolo_gru
+      feature_cache: outputs/precomputed
+      seeds: [0]
+      epochs: 10
+      fps: 10
+      num_segments: 32
+      k: 10
+
+    - name: B3_yolo_no_track
+      kind: yolo_no_track
+      feature_cache: outputs/precomputed_no_track
+      seeds: [0]
+      epochs: 10
+      fps: 10
+      num_segments: 32
+      k: 10
+
+    # Ablations (>=6; MUST RUN)
+    - name: A1_motion_only
+      kind: targetformer
+      feature_cache: outputs/precomputed
+      seeds: [0]
+      epochs: 8
+      fps: 10
+      num_segments: 32
+      k: 10
+      ablation:
+        drop_geometry: false
+        drop_motion: false
+        drop_appearance: true
+
+    - name: A2_appearance_only
+      kind: targetformer
+      feature_cache: outputs/precomputed
+      seeds: [0]
+      epochs: 8
+      fps: 10
+      num_segments: 32
+      k: 10
+      ablation:
+        drop_geometry: false
+        drop_motion: true
+        drop_appearance: false
+
+    - name: A3_k_5
+      kind: targetformer
+      feature_cache: outputs/precomputed
+      seeds: [0]
+      epochs: 8
+      fps: 10
+      num_segments: 32
+      k: 5
+
+    - name: A3_k_20
+      kind: targetformer
+      feature_cache: outputs/precomputed
+      seeds: [0]
+      epochs: 8
+      fps: 10
+      num_segments: 32
+      k: 20
+
+    - name: A4_depth_2
+      kind: targetformer
+      feature_cache: outputs/precomputed
+      seeds: [0]
+      epochs: 8
+      fps: 10
+      num_segments: 32
+      k: 10
+      model:
+        num_layers: 2
+
+    - name: A4_depth_6
+      kind: targetformer
+      feature_cache: outputs/precomputed
+      seeds: [0]
+      epochs: 8
+      fps: 10
+      num_segments: 32
+      k: 10
+      model:
+        num_layers: 6
+
+    - name: A5_no_prototypes
+      kind: targetformer
+      feature_cache: outputs/precomputed
+      seeds: [0]
+      epochs: 8
+      fps: 10
+      num_segments: 32
+      k: 10
+      model:
+        use_prototypes: false
+
+    - name: A6_fps_5
+      kind: targetformer
+      feature_cache: outputs/precomputed_fps5
+      seeds: [0]
+      epochs: 8
+      fps: 5
+      num_segments: 32
+      k: 10
+
+optim:
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+epochs_default: 10
+batch_size: 1
+grad_accum_steps: 4
+amp: true
+num_workers: 2
+log_every: 50
+save_every: 1
+loss:
+  margin: 1.0
+  lambda_smooth: 0.1
+  lambda_sparse: 0.001
+  lambda_proto_div: 0.01
+
+eval:
+  split: Test
+  out_name: eval
+
+viz:
+  figures_dir: outputs/figures
+  figures_data_dir: outputs/figures_data
