@@ -68,4 +68,21 @@ def get_paths(cfg: Dict[str, Any], repo_root: Path) -> Paths:
     if not outputs_root.is_absolute():
         outputs_root = (repo_root / outputs_root).resolve()
 
-    return Paths(datasets_root=datasets_root, outputs_root=outputs_root)
+    # If the configured path doesn't exist (e.g., after moving the dataset),
+    # fall back to auto-detection so the pipeline keeps working.
+    if not datasets_root.exists():
+        candidates = [
+            (repo_root / "datasets"),
+            Path("/datasets"),
+            (repo_root.parent / "datasets"),
+        ]
+
+        def _looks_like_split_root(p: Path) -> bool:
+            return (p / "Train").exists() and (p / "Test").exists()
+
+        for cand in candidates:
+            if cand.exists() and _looks_like_split_root(cand):
+                datasets_root = cand.resolve()
+                break
+
+    return Paths(datasets_root=datasets_root, outputs_root=outputs_root)        
