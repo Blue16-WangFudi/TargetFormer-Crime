@@ -2,7 +2,7 @@ seed: 123
 deterministic: true
 
 paths:
-  datasets_root: ../datasets
+  datasets_root: datasets
   outputs_root: outputs
 
 dataset:

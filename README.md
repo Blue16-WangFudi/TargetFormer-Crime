@@ -18,7 +18,7 @@ make audit
 
 ## 2. 数据集
 
-默认自动探测数据集根目录（优先 `/datasets`，其次 `../datasets`；均要求包含 `Train/` 与 `Test/`）。
+默认自动探测数据集根目录（优先 `datasets/`，其次 `/datasets`，再其次 `../datasets`；均要求包含 `Train/` 与 `Test/`）。
 如需自定义路径，使用环境变量：
 
 - `TFC_DATASETS_ROOT`：数据集根目录（包含 `Train/` 与 `Test/`）
@@ -32,7 +32,7 @@ make preprocess  # YOLO(+tracking) 目标 token 预计算（可断点续跑）
 make train       # 训练（TargetFormer/基线/消融，配置驱动）
 make eval        # 评估 + 保存预测数组
 make viz         # 生成论文级图与对应数据文件
-make paper       # XeLaTeX 编译（../latex）
+make paper       # XeLaTeX 编译（latex/）
 make clean       # 清理 outputs/*
 ```
 

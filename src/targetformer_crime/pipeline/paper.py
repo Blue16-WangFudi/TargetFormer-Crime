@@ -5,11 +5,22 @@ import subprocess
 from pathlib import Path
 
 
+def _find_latex_dir(repo_root: Path) -> Path:
+    candidates = [
+        (repo_root / "latex"),
+        (repo_root.parent / "latex"),
+    ]
+    for d in candidates:
+        if (d / "main.tex").exists():
+            return d.resolve()
+    raise FileNotFoundError(
+        "latex template not found; expected `latex/main.tex` under repo root or its parent"
+    )
+
+
 def compile_paper(repo_root: Path) -> None:
-    latex_dir = (repo_root.parent / "latex").resolve()
+    latex_dir = _find_latex_dir(repo_root)
     main_tex = latex_dir / "main.tex"
-    if not main_tex.exists():
-        raise FileNotFoundError(f"latex template not found: {main_tex}")
 
     jobname = main_tex.stem
     out_pdf = latex_dir / f"{jobname}.pdf"

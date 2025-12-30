@@ -52,6 +52,16 @@ def _run_single_preprocess(
     if pp_kind in {"global", "global_tokens"}:
         pre = GlobalTokenPreprocessor.from_config(pp_cfg)
     else:
+        # Resolve relative YOLO weight path against repo root to avoid relying
+        # on the caller's working directory (e.g., after moving `yolov8n.pt`).
+        yolo_model = pp_cfg.get("yolo_model")
+        if isinstance(yolo_model, str):
+            cand = Path(yolo_model)
+            if not cand.is_absolute():
+                local = repo_root / cand
+                if local.exists():
+                    pp_cfg = dict(pp_cfg)
+                    pp_cfg["yolo_model"] = str(local.resolve())
         pre = YoloTokenPreprocessor.from_config(pp_cfg)
     dump_json(meta_path, {"config": pp_cfg})
 
